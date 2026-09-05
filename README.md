@@ -11,51 +11,6 @@ Chatify is a high-concurrency, event-driven real-time messaging web application 
 
 ---
 
-## Architecture & System Design
-
-```mermaid
-flowchart TD
-    subgraph Clients["Client Layer (Web & Mobile)"]
-        BrowserA["Web Client (User A)"]
-        MobileB["Mobile Client (User B)"]
-    end
-
-    subgraph Frontend["Vercel Serverless Hosting"]
-        NextApp["Next.js App Router (UI & API Routes)"]
-        AuthHandler["NextAuth.js (JWT Session)"]
-        MediaHandler["Avatar & Media API (/api/users/avatar)"]
-    end
-
-    subgraph Realtime["Render / Railway Service"]
-        SocketServer["Node.js + Socket.io Server"]
-        RoomManager["Room & Presence Manager"]
-    end
-
-    subgraph Database["Database Layer"]
-        MongoAtlas[("MongoDB Atlas Cluster")]
-        UsersCol[("users")]
-        ChatsCol[("chats")]
-        MessagesCol[("messages")]
-    end
-
-    BrowserA <-->|HTTPS / REST API| NextApp
-    MobileB <-->|HTTPS / REST API| NextApp
-    BrowserA <-->|WSS (WebSockets)| SocketServer
-    MobileB <-->|WSS (WebSockets)| SocketServer
-
-    NextApp -->|Mongoose ODM| MongoAtlas
-    SocketServer -->|Broadcast Events| RoomManager
-    RoomManager -->|Sync Online Status / Typing| BrowserA
-    RoomManager -->|Sync Online Status / Typing| MobileB
-    NextApp --- AuthHandler
-    NextApp --- MediaHandler
-    MongoAtlas --- UsersCol
-    MongoAtlas --- ChatsCol
-    MongoAtlas --- MessagesCol
-```
-
----
-
 ## Real-Time Messaging & Event Flow
 
 ```mermaid
