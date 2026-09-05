@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
+import mongoose from "mongoose";
 import Chat from "@/models/Chat";
 import Message from "@/models/Message";
 
@@ -13,11 +14,16 @@ export async function GET(req: Request) {
 
     await connectDB();
 
+    const currentUserId = session.user.id;
+    const userObjectId = mongoose.isValidObjectId(currentUserId)
+      ? new mongoose.Types.ObjectId(currentUserId)
+      : currentUserId;
+
     // Find chats where user is currently a member, or was in memberHistory (e.g. removed group member)
     const chats = await Chat.find({
       $or: [
-        { members: { $in: [session.user.id] } },
-        { "memberHistory.user": session.user.id },
+        { members: { $in: [currentUserId, userObjectId] } },
+        { "memberHistory.user": { $in: [currentUserId, userObjectId] } },
       ],
     })
       .populate("members", "-password")

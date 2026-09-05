@@ -208,13 +208,14 @@ export function ChatList({ chats, setChats, notifications, setNotifications }: C
               <Settings size={18} />
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
                 const socket = getSocket();
                 if (session?.user?.id) {
                   socket.emit("userLogout", session.user.id);
                 }
                 socket.disconnect();
-                signOut({ callbackUrl: "/login" });
+                await signOut({ redirect: false });
+                window.location.href = "/login";
               }}
               className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition"
               title="Sign out"

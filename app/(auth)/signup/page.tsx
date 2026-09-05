@@ -40,8 +40,8 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4 transition-colors duration-300">
-      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl shadow-xl p-8 w-full max-w-md transition-all duration-300 animate-fadeIn">
+    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 px-4 py-8 transition-colors duration-300">
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl shadow-xl p-6 sm:p-8 w-full max-w-sm sm:max-w-md transition-all duration-300 animate-fadeIn">
         <h1 className="text-2xl font-bold text-center text-indigo-600 dark:text-indigo-400 mb-2">Create Account</h1>
         <p className="text-xs text-center text-gray-500 dark:text-gray-400 mb-6">Enter your details to register</p>
 
