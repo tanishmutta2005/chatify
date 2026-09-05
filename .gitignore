@@ -1,0 +1,17 @@
+node_modules
+.next
+dist
+build
+.env*
+!.env.example
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+*.pem
+server/node_modules
+server/dist
+public/uploads/*
+!public/uploads/.gitkeep
+
