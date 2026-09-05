@@ -3,13 +3,25 @@ import { Server, Socket } from "socket.io";
 
 // ── Config ──────────────────────────────────────────────────
 const PORT = process.env.PORT || 5001;
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const rawClientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+const allowedOrigins = rawClientUrl.split(",").map((s) => s.trim());
 
 // ── HTTP + Socket.io setup ───────────────────────────────────
 const httpServer = createServer();
 const io = new Server(httpServer, {
   cors: {
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes("*") ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
