@@ -58,10 +58,19 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id       = user.id;
         token.username = (user as any).username;
-        token.avatar   = (user as any).avatar;
+        const rawAvatar = (user as any).avatar || "";
+        // Never put massive base64 image strings into JWT cookie (causes HTTP 494)
+        token.avatar   = (rawAvatar.startsWith("data:") || rawAvatar.length > 500)
+          ? `/api/users/avatar/${user.id}`
+          : rawAvatar;
       }
       if (trigger === "update" && session?.user) {
-        if (session.user.avatar !== undefined) token.avatar = session.user.avatar;
+        if (session.user.avatar !== undefined) {
+          const rawAvatar = session.user.avatar || "";
+          token.avatar = (rawAvatar.startsWith("data:") || rawAvatar.length > 500)
+            ? `/api/users/avatar/${token.id}?t=${Date.now()}`
+            : rawAvatar;
+        }
         if (session.user.name !== undefined) token.name = session.user.name;
       }
       return token;

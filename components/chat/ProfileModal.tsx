@@ -16,6 +16,45 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Resize client-side to prevent massive upload payloads and keep DB/cookies light
+  const resizeImage = (imageFile: File, maxWidth = 300, maxHeight = 300): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return resolve(imageFile);
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => resolve(blob || imageFile),
+            "image/jpeg",
+            0.82
+          );
+        };
+        img.onerror = () => resolve(imageFile);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve(imageFile);
+      reader.readAsDataURL(imageFile);
+    });
+  };
+
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -25,16 +64,19 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be smaller than 5MB");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Image must be smaller than 15MB");
       return;
     }
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
 
     try {
+      const compressedBlob = await resizeImage(file, 300, 300);
+      const optimizedFile = new File([compressedBlob], "avatar.jpg", { type: "image/jpeg" });
+      const formData = new FormData();
+      formData.append("file", optimizedFile);
+
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -65,13 +107,16 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
 
       const data = await res.json();
       if (res.ok) {
-        // Update client-side session so changes reflect immediately
+        // Update client-side session so changes reflect immediately without bloating JWT cookie
         if (update) {
+          const cleanAvatar = avatar.startsWith("data:")
+            ? `/api/users/avatar/${session?.user?.id}?t=${Date.now()}`
+            : avatar;
           await update({
             ...session,
             user: {
               ...session?.user,
-              avatar,
+              avatar: cleanAvatar,
               name,
             },
           });
