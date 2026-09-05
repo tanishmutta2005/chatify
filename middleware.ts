@@ -38,9 +38,7 @@ export async function middleware(req: NextRequest) {
   const isAuthPage  = authRoutes.some((r) => pathname.startsWith(r));
 
   if (isProtected && !token && !pathname.startsWith("/api/auth")) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   // Redirect already-logged-in users away from login/signup
