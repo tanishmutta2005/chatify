@@ -14,4 +14,5 @@ server/node_modules
 server/dist
 public/uploads/*
 !public/uploads/.gitkeep
+*.tsbuildinfo
 
